@@ -2,6 +2,7 @@ package com.override.unittests;
 
 import com.override.unittests.enums.ClientType;
 import com.override.unittests.exception.CannotBePayedException;
+import com.override.unittests.exception.CentralBankNotRespondingException;
 import com.override.unittests.service.CentralBankService;
 import com.override.unittests.service.CreditCalculator;
 import org.junit.jupiter.api.Assertions;
@@ -37,12 +38,20 @@ class CreditCalculatorTest {
 
     @Test
     public void calculateOverpaymentBusinessTest() {
-        //TODO
+        when(centralBankService.getKeyRate()).thenReturn(10d);
+        double amount = 100000d;
+        double monthPaymentAmount = 10000d;
+        double result = creditCalculator.calculateOverpayment(amount, monthPaymentAmount, ClientType.BUSINESS);
+        Assertions.assertEquals(11000d, result);
     }
 
     @Test
     public void calculateOverpaymentIndividualTest() {
-        //TODO
+        when(centralBankService.getKeyRate()).thenReturn(10d);
+        double amount = 100000d;
+        double monthPaymentAmount = 10000d;
+        double result = creditCalculator.calculateOverpayment(amount, monthPaymentAmount, ClientType.INDIVIDUAL);
+        Assertions.assertEquals(12000d, result);
     }
 
     @Test
@@ -55,11 +64,20 @@ class CreditCalculatorTest {
 
     @Test
     public void calculateOverpaymentOnManyYearCreditTest() {
-        //TODO тест для случая, когда кредит все таки можно выплатить, но проценты будут начисляться много лет
+        when(centralBankService.getKeyRate()).thenReturn(10d);
+        double amount = 100000d;
+        double monthPaymentAmount = 1000;
+        double result = creditCalculator.calculateOverpayment(amount, monthPaymentAmount, ClientType.INDIVIDUAL);
+        Assertions.assertEquals(12000d, result);
     }
 
     @Test
     public void calculateOverpaymentWhenNoConnectionTest() {
-        //TODO
+        when(centralBankService.getKeyRate()).thenThrow(CentralBankNotRespondingException.class);
+        when(centralBankService.getDefaultCreditRate()).thenReturn(30d);
+        double amount = 100000d;
+        double monthPaymentAmount = 2500;
+        double result = creditCalculator.calculateOverpayment(amount, monthPaymentAmount, ClientType.INDIVIDUAL);
+        Assertions.assertEquals(30000d, result);
     }
 }
